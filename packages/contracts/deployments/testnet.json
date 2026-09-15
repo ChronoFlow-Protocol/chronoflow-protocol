@@ -1,0 +1,12 @@
+{
+  "network": "testnet",
+  "contractId": "CBF23UKGPOWZWMJCWNUTSHGXFGHJF62HDF3KRX633HJUIT7GJXDN7JTJ",
+  "wasmHash": "095f5fc3fd00ada4c4e6d2ff34348299cd5fa99f3ddb0bc6d50da7d0967f3482",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "friendbotUrl": "https://friendbot.stellar.org",
+  "deployedAt": "2026-09-15T18:31:53.002Z",
+  "deployedLedger": 4694705,
+  "sourceAccount": "chronoflow-deployer",
+  "wasm": "wasm/chronoflow_escrow.wasm"
+}

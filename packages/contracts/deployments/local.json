@@ -1,0 +1,8 @@
+{
+  "network": "local",
+  "contractId": "",
+  "rpcUrl": "http://localhost:8000/soroban/rpc",
+  "networkPassphrase": "Standalone Network ; February 2017",
+  "friendbotUrl": "http://localhost:8000/friendbot",
+  "deployedAt": ""
+}

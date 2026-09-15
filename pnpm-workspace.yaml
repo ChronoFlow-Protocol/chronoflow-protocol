@@ -1,0 +1,27 @@
+packages:
+  - "packages/*"
+
+# Packages allowed to run install/build lifecycle scripts. pnpm blocks these by
+# default; Prisma needs its postinstall to fetch query engines, and
+# `prisma generate` runs from there.
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  "@tailwindcss/oxide": true
+  bufferutil: true
+  esbuild: true
+  keccak: true
+  prisma: true
+  secp256k1: true
+  sharp: true
+  unrs-resolver: true
+
+# pnpm refuses to install versions younger than a cutoff (a supply-chain
+# hardening default). These exact versions were published within that window
+# when the lockfile was generated, so they are allow-listed explicitly rather
+# than disabling the check. Revisit once they age past the window.
+minimumReleaseAgeExclude:
+  - "@stellar/stellar-sdk@17.1.0"
+  - "vitest@5.0.1"
+  - "@vitest/mocker@5.0.1"
+  - "@vitest/spy@5.0.1"

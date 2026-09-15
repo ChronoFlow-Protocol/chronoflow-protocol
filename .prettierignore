@@ -1,0 +1,23 @@
+node_modules
+dist
+build
+out
+.next
+artifacts
+cache
+types
+coverage
+pnpm-lock.yaml
+*.db
+
+# Generated from the compiled contract spec / Stellar CLI — never hand-edited.
+packages/*/src/generated
+packages/contracts/bindings
+packages/contracts/wasm
+packages/contracts/target
+packages/contracts/deployments
+
+# Rust build output and vendored agent skills.
+target
+.agents
+.scaffold

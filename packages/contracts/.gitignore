@@ -1,0 +1,16 @@
+# Cargo build output
+/target
+
+# Exported wasm artifacts (produced by scripts/build.sh)
+/wasm
+
+# Stellar CLI generated bindings (produced by scripts/bindings.sh)
+/bindings
+
+# Local Stellar CLI state
+/.soroban
+/.stellar
+
+# NOTE: `contracts/*/test_snapshots/**` is intentionally NOT ignored. The
+# soroban-sdk writes one snapshot per test (ledger entries, events, auth) and its
+# docs ask for them to be committed so behaviour changes surface as diffs.

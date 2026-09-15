@@ -1,0 +1,21 @@
+[package]
+name = "chronoflow-escrow"
+description = "Time-locked, milestone-based escrow and payment streaming for Stellar (Soroban)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["lib", "cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[lints]
+workspace = true

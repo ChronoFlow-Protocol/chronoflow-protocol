@@ -1,0 +1,96 @@
+// PostgreSQL variant of the indexer schema.
+//
+//   pnpm db:use-postgres   # swaps this file in as prisma/schema.prisma
+//   pnpm db:use-sqlite     # swaps the SQLite version back
+//
+// Then set DATABASE_URL and run `pnpm db:deploy` (or `pnpm db:push` for a
+// first-time setup).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Current state of a vault, folded from the contract's events.
+model Vault {
+  id       Int    @id
+  funder   String
+  recipient String
+  token    String
+
+  /// Amounts are stored as decimal strings so i128 values survive the round trip.
+  totalAmount         String
+  amountPerMilestone  String
+  amountReleased      String
+
+  duration            Int
+  milestones          Int
+  milestonesReleased  Int
+  startTime           BigInt
+  clawbackTime        BigInt
+  status              String
+
+  createdLedger   Int
+  createdTxHash   String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  milestonesRef Milestone[]
+
+  @@index([funder])
+  @@index([recipient])
+  @@index([status])
+}
+
+/// Per-milestone progress, materialised from VaultCreated + MilestoneReleased.
+model Milestone {
+  id      Int @id @default(autoincrement())
+  vaultId Int
+  index   Int
+  amount  String
+  unlockTime BigInt
+  released   Boolean @default(false)
+  releasedAt BigInt?
+  releaseTxHash String?
+  releaseLedger Int?
+
+  vault Vault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@unique([vaultId, index])
+  @@index([vaultId, released])
+}
+
+/// Append-only log of every contract event the indexer consumed.
+model VaultEvent {
+  id          Int      @id @default(autoincrement())
+  eventId     String   @unique
+  /// Vault the event refers to. Deliberately not a foreign key: the log has to
+  /// accept events for vaults whose creation falls outside the indexer's cursor
+  /// (for example before an RPC retention window), and losing them would
+  /// silently drop real protocol history.
+  vaultId     Int?
+  topic       String
+  kind        String
+  ledger      Int
+  txHash      String
+  contractId  String
+  payload     String
+  occurredAt  BigInt
+  ingestedAt  DateTime @default(now())
+
+  @@index([vaultId])
+  @@index([kind])
+  @@index([ledger])
+}
+
+/// Resume point for the event poller.
+model IndexerCursor {
+  id         Int      @id @default(autoincrement())
+  contractId String   @unique
+  lastLedger Int
+  updatedAt  DateTime @updatedAt
+}

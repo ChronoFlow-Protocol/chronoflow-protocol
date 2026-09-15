@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-ink-900 text-slate-200 antialiased;
+    background-image:
+      radial-gradient(60rem 40rem at 15% -10%, rgba(34, 211, 238, 0.12), transparent 60%),
+      radial-gradient(50rem 40rem at 90% 0%, rgba(139, 92, 246, 0.14), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-chrono-500/30;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

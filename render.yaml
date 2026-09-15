@@ -1,0 +1,46 @@
+# Render blueprint for the ChronoFlow indexer API.
+#
+#   Render dashboard → New → Blueprint → point at this repository.
+#
+# DATABASE_URL and CORS_ORIGIN are prompted for on first deploy (sync: false);
+# * use the Internal Database URL for a Render Postgres instance
+#   (run `pnpm --filter @chronoflow/backend run db:use-postgres` and commit the
+#   swapped schema.prisma before deploying).
+
+services:
+  - type: web
+    name: chronoflow-api
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: .
+    buildCommand: >-
+      pnpm install --frozen-lockfile &&
+      pnpm --filter @chronoflow/backend run db:generate &&
+      pnpm --filter @chronoflow/backend run build
+    startCommand: node packages/backend/dist/index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: LOG_LEVEL
+        value: info
+      - key: INDEXER_ENABLED
+        value: "true"
+      - key: TOKEN_DECIMALS
+        value: "7"
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+
+databases:
+  - name: chronoflow-db
+    plan: basic-256mb
+    region: oregon
+    postgresMajorVersion: "16"

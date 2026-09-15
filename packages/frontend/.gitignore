@@ -1,0 +1,11 @@
+.next/
+out/
+dist/
+node_modules/
+coverage/
+.env
+.env.local
+.env*.local
+next-env.d.ts
+test-results/
+.browser-deps/

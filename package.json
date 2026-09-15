@@ -1,0 +1,32 @@
+{
+  "name": "chronoflow-protocol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "On-chain time-locked escrow and milestone-based payment streaming on Stellar (Soroban)",
+  "license": "MIT",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @chronoflow/backend --filter @chronoflow/frontend run dev",
+    "build": "pnpm run build:contracts && pnpm --filter @chronoflow/backend run build && pnpm --filter @chronoflow/frontend run build",
+    "build:contracts": "pnpm --filter @chronoflow/contracts run build",
+    "test": "pnpm -r --if-present run test",
+    "test:coverage": "pnpm --filter @chronoflow/contracts run test:coverage",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "lint": "pnpm -r --if-present run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml,yaml}\"",
+    "export": "pnpm --filter @chronoflow/contracts run export",
+    "deploy:testnet": "pnpm --filter @chronoflow/contracts run deploy:testnet",
+    "db:generate": "pnpm --filter @chronoflow/backend run db:generate",
+    "db:push": "pnpm --filter @chronoflow/backend run db:push",
+    "backend:dev": "pnpm --filter @chronoflow/backend run dev",
+    "frontend:dev": "pnpm --filter @chronoflow/frontend run dev",
+    "clean": "pnpm -r --if-present run clean"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

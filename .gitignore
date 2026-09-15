@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Rust / Soroban
+target/
+packages/contracts/wasm/
+packages/contracts/bindings/
+packages/contracts/target/
+
+# Contract spec is generated into the app packages from the compiled wasm; the
+# modules themselves are committed so a fresh clone builds without the toolchain.
+!packages/backend/src/generated
+!packages/frontend/src/generated
+
+# Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# Editors & OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Deployment providers
+.vercel/
+.fly/
+
+# Rust agent skills scaffolded by `stellar contract init`
+.agents/
+.scaffold/

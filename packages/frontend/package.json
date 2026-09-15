@@ -1,0 +1,41 @@
+{
+  "name": "@chronoflow/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ChronoFlow dApp: time-locked escrow and milestone streaming on Stellar",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "next lint --max-warnings=0",
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "clean": "rm -rf .next out dist"
+  },
+  "dependencies": {
+    "@stellar/freighter-api": "^6.0.1",
+    "@stellar/stellar-sdk": "^17.1.0",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.35",
+    "playwright": "1.63.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
+  }
+}

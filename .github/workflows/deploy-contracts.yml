@@ -1,0 +1,120 @@
+name: Deploy contracts (testnet)
+
+# Manual only: this publishes a real contract and spends real testnet XLM.
+# See docs/deployment.md for the required secrets and the follow-up steps.
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: Stellar network to deploy to
+        required: true
+        default: testnet
+        type: choice
+        options: [testnet, futurenet]
+      commit_deployment:
+        description: Commit the refreshed deployment registry + generated modules
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Build and deploy the escrow contract
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.network }}
+    defaults:
+      run:
+        working-directory: packages/contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/contracts
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Stellar CLI
+        env:
+          STELLAR_CLI_VERSION: "28.0.0"
+        run: |
+          set -euo pipefail
+          archive="stellar-cli-${STELLAR_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -sSL -o "/tmp/${archive}" \
+            "https://github.com/stellar/stellar-cli/releases/download/v${STELLAR_CLI_VERSION}/${archive}"
+          tar xzf "/tmp/${archive}" -C /tmp
+          sudo install /tmp/stellar /usr/local/bin/stellar
+
+      - name: Import the deployer identity
+        env:
+          STELLAR_SECRET_KEY: ${{ secrets.STELLAR_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STELLAR_SECRET_KEY}" ]; then
+            echo "::error::Set the STELLAR_SECRET_KEY secret (a funded testnet account, S…)."
+            exit 1
+          fi
+          stellar keys add chronoflow-deployer --secret-key "${STELLAR_SECRET_KEY}" --overwrite
+
+      - name: Deploy and export artifacts
+        env:
+          STELLAR_NETWORK: ${{ inputs.network }}
+          STELLAR_SOURCE_ACCOUNT: chronoflow-deployer
+        run: bash scripts/deploy-testnet.sh
+
+      - name: Publish deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chronoflow-deployment-${{ inputs.network }}
+          path: |
+            packages/contracts/deployments/
+            packages/contracts/wasm/*.wasm
+          if-no-files-found: error
+
+      - name: Summary
+        env:
+          NETWORK: ${{ inputs.network }}
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const network = process.env.NETWORK;
+            const deployment = JSON.parse(readFileSync("./deployments/registry.json", "utf8"))[network];
+            console.log(`### ChronoFlow deployed to ${network}`);
+            console.log("");
+            console.log(`- contract id: ${deployment.contractId}`);
+            console.log(`- deployed ledger: ${deployment.deployedLedger}`);
+            console.log(`- explorer: https://stellar.expert/explorer/${network}/contract/${deployment.contractId}`);
+          ' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit the refreshed deployment registry
+        if: ${{ inputs.commit_deployment }}
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/contracts/deployments \
+                  packages/backend/src/generated \
+                  packages/frontend/src/generated
+          if git diff --cached --quiet; then
+            echo "deployment registry unchanged"
+          else
+            git commit -m "chore(contracts): deploy chronoflow-escrow to ${{ inputs.network }}"
+            git push
+          fi

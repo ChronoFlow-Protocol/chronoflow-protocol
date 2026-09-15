@@ -1,0 +1,19 @@
+{
+  "name": "@chronoflow/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Soroban smart contracts for the ChronoFlow time-locked escrow protocol",
+  "license": "MIT",
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "test": "bash scripts/test.sh",
+    "test:coverage": "bash scripts/coverage.sh",
+    "lint": "bash scripts/lint.sh",
+    "typecheck": "cargo check --workspace --all-targets",
+    "fmt": "cargo fmt --all",
+    "export": "bash scripts/export.sh",
+    "bindings": "bash scripts/bindings.sh",
+    "deploy:testnet": "bash scripts/deploy-testnet.sh",
+    "clean": "cargo clean && rm -rf wasm bindings"
+  }
+}

@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  NEXT_TELEMETRY_DISABLED: "1"
+  # Baked into the frontend bundle at build time; deployments override it.
+  NEXT_PUBLIC_API_URL: http://localhost:4000
+
+jobs:
+  contracts:
+    name: Contracts · fmt, clippy, tests, wasm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # The Soroban target the Stellar CLI builds against.
+          targets: wasm32v1-none
+          components: clippy, rustfmt
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/contracts
+
+      - name: Format and clippy
+        run: bash scripts/lint.sh
+
+      - name: Unit tests
+        run: cargo test --workspace
+
+      - name: Install Stellar CLI
+        env:
+          STELLAR_CLI_VERSION: "28.0.0"
+        run: |
+          set -euo pipefail
+          archive="stellar-cli-${STELLAR_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -sSL -o "/tmp/${archive}" \
+            "https://github.com/stellar/stellar-cli/releases/download/v${STELLAR_CLI_VERSION}/${archive}"
+          tar xzf "/tmp/${archive}" -C /tmp
+          sudo install /tmp/stellar /usr/local/bin/stellar
+          stellar --version
+
+      - name: Build wasm
+        run: bash scripts/build.sh
+
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chronoflow-escrow-wasm
+          path: packages/contracts/wasm/*.wasm
+          if-no-files-found: error
+
+  coverage:
+    name: Contracts · coverage (>85% lines)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/contracts
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Measure coverage
+        run: cargo llvm-cov --workspace --summary-only --fail-under-lines 85
+
+  backend:
+    name: Backend · lint, typecheck, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @chronoflow/backend run db:generate
+
+      - name: Lint
+        run: pnpm --filter @chronoflow/backend run lint
+
+      - name: Typecheck
+        run: pnpm --filter @chronoflow/backend run typecheck
+
+      - name: Tests
+        run: pnpm --filter @chronoflow/backend run test
+
+      - name: Build
+        run: pnpm --filter @chronoflow/backend run build
+
+  frontend:
+    name: Frontend · lint, typecheck, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @chronoflow/frontend run lint
+
+      - name: Typecheck
+        run: pnpm --filter @chronoflow/frontend run typecheck
+
+      - name: Tests
+        run: pnpm --filter @chronoflow/frontend run test
+
+      - name: Build
+        run: pnpm --filter @chronoflow/frontend run build
